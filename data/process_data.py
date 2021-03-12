@@ -33,6 +33,9 @@ def clean_data(df):
                                             lambda x: x.split(';')[number][-1])
         # convert column from string to numeric
         categories[column] = categories[column].apply(int)
+
+    # Some cleaning in case a value is differente from 0 or 1
+    categories = (categories>0).astype(int)
     # drop the original categories column from `df`
     df.drop('categories', axis=1, inplace=True)
     # concatenate the original dataframe with the new `categories` dataframe
