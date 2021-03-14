@@ -1,4 +1,5 @@
 import sys
+import os
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
@@ -50,7 +51,12 @@ def save_data(df, database_filename):
 
     final_path = 'sqlite:///' + database_filename
     engine = create_engine(final_path)
-    df.to_sql(database_filename[:-3], engine, index=False)
+    df.to_sql('DisasterResponse_table', engine, index=False)
+    #final_path = os.path.abspath(final_path)
+    print(final_path)
+    print(engine)
+    df2 = pd.read_sql('DisasterResponse_table', engine)
+    print(df2)
 
 
 def main():

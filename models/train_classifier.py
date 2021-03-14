@@ -44,27 +44,9 @@ def load_data(database_filepath):
 
     message_column = 'message'
 
-    # Leave this out if the file doesn't exist yet
-    #assert os.path.exists(filepath), "The file doesn't exist"
-    #conn = sqlite3.connect(filepath)
-
-    #final_path = 'sqlite://'+BASE_PATH+database_filepath
-    final_path = '../data/'+database_filepath
-    print('final_path 1: ', final_path )
-    final_path = os.path.abspath(final_path)
-    print('final_path 2: ', final_path )
-    final_path = 'sqlite://' + final_path
-    print('final_path 3: ', final_path )
-
-    '''app.config[database_filepath.split('/')[-1][:-3]] = 'sqlite:///' + os.path.join(final_path)
-    db = SQLAlchemy(app)'''
-
-    #engine = sqlite3.connect(final_path) #, pool_pre_ping=True)
-
+    final_path = 'sqlite:///' + database_filepath
     engine = create_engine(final_path)
-    print('one pass +++++++++')
-    df = pd.read_sql("SELECT * FROM final", engine)
-    print('two pass +++++++++')
+    df = pd.read_sql('DisasterResponse_table', engine)
     X = df[message_column].values
     Y = df[target_columns].values
     print(df.tail())
@@ -73,16 +55,56 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-    pass
+    url_regex = 'http[s]?[\s]?[:]?[\s]?[\/\/]?(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+    detected_urls = re.findall(url_regex, text)
+    for url in detected_urls:
+        text = text.replace(url, "urlplaceholder")
+        text = re.sub('[^a-zA-Z0-9]',' ',text)
+
+    tokens = word_tokenize(text)
+    #words = [w for w in tokens if w.lower() not in stopwords.words('english')]
+
+    #poswords = pos_tag(words)
+
+    #chunkwords = ne_chunk(poswords)
+
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok, pos='v')
+        clean_tokens.append(clean_tok)
+
+
+    return  clean_tokens
 
 
 def build_model():
-    pass
+    pipeline = Pipeline([
+                    ('vect', CountVectorizer(tokenizer=tokenize)),
+                    ('tfidf', TfidfTransformer()),
+                    ('clf', MultiOutputClassifier(RandomForestClassifier()))
+                    ])
+    parameters = {
+            #'vect__ngram_range': ((1, 1), (1,2)),
+            #'vect__max_df': (0.5, 0.75, 1.0),
+            'vect__max_features': (None, 5000), #10000
+            #'tfidf__use_idf': (True, False),
+            "clf": [RandomForestClassifier()],
+            "clf__n_estimators": [10, 100, 250],
+            #"clf__max_depth":[8],
+            #"clf__random_state":[42],
+            }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters)
+
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
-
+    y_pred = model.predict(X_test)
+    print(classification_report(Y_test, y_pred, target_names=category_names))
 
 def save_model(model, model_filepath):
     pass
