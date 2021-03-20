@@ -1,17 +1,18 @@
 import sys
 import nltk
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-nltk.download('maxent_ne_chunker')
-nltk.download('words')
-nltk.download('wordnet')
+#nltk.download('punkt')
+#nltk.download('averaged_perceptron_tagger')
+#nltk.download('stopwords')
+#nltk.download('maxent_ne_chunker')
+#nltk.download('words')
+#nltk.download('wordnet')
 
 # import libraries
 import numpy as np
 import pandas as pd
 import os
 import sqlite3
+import pickle
 from sqlalchemy import create_engine
 import re
 from nltk.tokenize import word_tokenize
@@ -27,6 +28,18 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import classification_report
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import GradientBoostingClassifier
+
 
 BASE_PATH1 = '/Users/carlosarocha/Dropbox/AI/GITHUB/UDACITY/DATA_SCIENCE/disaster_response_pipeline_project/data/'
 BASE_PATH = '/'
@@ -84,22 +97,22 @@ def build_model():
     pipeline = Pipeline([
                     ('vect', CountVectorizer(tokenizer=tokenize)),
                     ('tfidf', TfidfTransformer()),
-                    ('clf', MultiOutputClassifier(RandomForestClassifier()))
+                    ('clf', MultiOutputClassifier(SGDClassifier()))
                     ])
-    parameters = {
+    '''parameters = {
             #'vect__ngram_range': ((1, 1), (1,2)),
             #'vect__max_df': (0.5, 0.75, 1.0),
             'vect__max_features': (None, 5000), #10000
             #'tfidf__use_idf': (True, False),
-            "clf": [RandomForestClassifier()],
-            "clf__n_estimators": [10, 100, 250],
+            #"clf": [RandomForestClassifier()],
+            #"clf__n_estimators": [10, 100, 250],
             #"clf__max_depth":[8],
             #"clf__random_state":[42],
             }
 
-    cv = GridSearchCV(pipeline, param_grid=parameters)
+    cv = GridSearchCV(pipeline, param_grid=parameters)'''
 
-    return cv
+    return pipeline #cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
@@ -107,7 +120,14 @@ def evaluate_model(model, X_test, Y_test, category_names):
     print(classification_report(Y_test, y_pred, target_names=category_names))
 
 def save_model(model, model_filepath):
-    pass
+
+    print(BASE_PATH1, model_filepath)
+    final_path = BASE_PATH1+model_filepath
+    pickle.dump(model, open(final_path, 'wb'))
+
+    # some time later...
+    # load the model from disk
+    # loaded_model = pickle.load(open(filename, 'rb'))
 
 
 def main():
@@ -117,11 +137,25 @@ def main():
         X, Y, category_names = load_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
+        '''classifiers = [  #KNeighborsClassifier(3),\ 0.77-0.74
+                            #DecisionTreeClassifier(max_depth=5),\ 0.77-0.64
+                            #RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),\ 0.76-0.76
+                            #RandomForestClassifier() #0.84-0.72
+                            #GradientBoostingClassifier(),
+                            #GaussianNB()
+                            #SVC()
+                            #LogisticRegression()
+                ]'''
+
         print('Building model...')
         model = build_model()
 
+        print(X_train.shape, Y_train.shape)
         print('Training model...')
         model.fit(X_train, Y_train)
+
+        score = model.score(X_test, Y_test)
+        print(score)
 
         print('Evaluating model...')
         evaluate_model(model, X_test, Y_test, category_names)
