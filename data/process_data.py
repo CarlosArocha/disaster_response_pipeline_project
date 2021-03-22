@@ -39,9 +39,11 @@ def clean_data(df):
     categories = (categories>0).astype(int)
     # Duplicate the 'related' column to avoid eliminate those rows with 0 values
     # the duplicated new column will have '1' where 'related' is '0'
-    # that warantees some issues fixed in the ML step.
+    # that warantees some issues fixed in the ML step because we are avoiding
+    # rows full of '0's.
     categories['not_related'] = categories['related'].apply(lambda x: [1,0][x])
-    # For ML training purposes, let's erase the columns with '0' values
+    # For ML training purposes, let's erase the columns with '0' values, this
+    # could bring issues in some ML algorithms.
     for col in categories.columns:
         if categories[col].sum() == 0:
             categories.drop(col, axis=1, inplace=True)
