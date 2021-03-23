@@ -76,6 +76,15 @@ def fix_imbalanced(data, target_col, factor=2, top_data=0.1):
             #print(col, len(d_samples))
     return new_data
 
+def imbalanced_rows(data, target_columns, factor=1):
+    db = data.copy()
+    l = int(len(db[db[target_columns].sum(axis=1) == 1]) * factor)
+    d_samples = db[db[target_columns].sum(axis=1) == 1].sample(n = l, replace=False)
+    db = pd.concat([db[db[target_columns].sum(axis=1) > 1],d_samples], ignore_index=True)
+    new_columns = [col for col in target_columns if db[col].sum(axis=0) > 0]
+
+    return db, new_columns
+
 
 def tokenize(text):
     # Changing every webpage for a space.
@@ -129,13 +138,13 @@ def build_model():
                  #'clf__estimator__max_depth': None,
                  #'clf__estimator__max_leaf_nodes': None,
                  #'clf__estimator__min_samples_split': [2],
-                 'clf__estimator__n_estimators': [100]#, 250, 500],
+                 #'clf__estimator__n_estimators': [100]#, 250, 500],
                  #'clf__estimator__random_state': (None, 0.2)
                  }
 
     cv = GridSearchCV(pipeline, param_grid=parameters)
 
-    return cv
+    return pipeline
 
 def evaluate_model(model, X_test, Y_test, category_names):
 
