@@ -4,6 +4,8 @@ import pandas as pd
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+import re
+from nltk.corpus import stopwords
 
 from flask import Flask
 from flask import render_template, request, jsonify
@@ -15,22 +17,42 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 def tokenize(text):
+    # Changing every webpage for a space.
+    # With this regex we delete webpages with these characteristics:
+    #       1. http://www.name.ext or similar
+    #       2. http : www.name.ext or similar
+    #       3. http www.name.ext or similar
+    url_regex = 'http[s]?[\s]?[:]?[\s]?[\/\/]?(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+    # Then clean the texts of webpages addresses
+    detected_urls = re.findall(url_regex, text)
+    for url in detected_urls:
+        text = text.replace(url, " ")
+
+    # Forgetting about the numbers and any non letter char
+    text = re.sub('[^a-zA-Z]',' ',text)
+
     tokens = word_tokenize(text)
+
+    tokens = [w for w in tokens if w not in stopwords.words('english')]
+
     lemmatizer = WordNetLemmatizer()
 
     clean_tokens = []
     for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+        clean_tok = lemmatizer.lemmatize(tok, pos='v').lower().strip()
+        clean_tok = lemmatizer.lemmatize(clean_tok, pos='n')
+        clean_tokens.append(clean_tok)#+'_'+tag)
 
-    return clean_tokens
 
+    return  clean_tokens
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('DisasterResponse_table', engine)
 
 # load model
-model = joblib.load("../models/DisasterResponseModel.pkl")
+pkl_file_location = "/volumes/outssd/udacity/DisasterResponseModel.pkl"
+model = joblib.load(pkl_file_location)
 
 
 # index webpage displays cool visuals and receives user input text for model

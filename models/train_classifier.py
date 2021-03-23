@@ -102,7 +102,7 @@ def tokenize(text):
     # Forgetting about the numbers and any non letter char
     text = re.sub('[^a-zA-Z]',' ',text)
 
-    tokens = word_tokenize(text.lower())
+    tokens = word_tokenize(text)
 
     tokens = [w for w in tokens if w not in stopwords.words('english')]
 
@@ -126,7 +126,7 @@ def build_model():
                     ('clf', MultiOutputClassifier(RandomForestClassifier()))
                     ])
 
-    parameters = {
+    #parameters = {
                  #'vect__max_df': (0.5, 0.75, 1.0),
                  #'vect__max_features': (None, 5000, 10000)
                  #'vect__min_df': (0.5, 1.0),
@@ -140,9 +140,9 @@ def build_model():
                  #'clf__estimator__min_samples_split': [2],
                  #'clf__estimator__n_estimators': [100]#, 250, 500],
                  #'clf__estimator__random_state': (None, 0.2)
-                 }
+    #             }
 
-    cv = GridSearchCV(pipeline, param_grid=parameters)
+    #cv = GridSearchCV(pipeline, param_grid=parameters)
 
     return pipeline
 
@@ -150,6 +150,7 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
     y_pred = model.predict(X_test)
     print(classification_report(Y_test, y_pred, target_names=category_names))
+    print('accuracy:', accuracy_score(Y_test, y_pred))
 
 def save_model(model, model_filepath):
 
@@ -169,6 +170,7 @@ def main():
 
         df, category_names = load_data(database_filepath)
         df = fix_imbalanced(df, category_names, 1.5, 0.035)
+        df, category_names = imbalanced_rows(df, category_names, 0.3)
 
         X, Y = XY_values(df, 'message', category_names)
 
