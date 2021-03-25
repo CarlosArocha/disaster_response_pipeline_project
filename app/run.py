@@ -1,20 +1,70 @@
 import json
 import plotly
 import pandas as pd
-
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
 import re
-from nltk.corpus import stopwords
+import joblib
 
+from sqlalchemy import create_engine
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk import pos_tag
+from nltk.corpus import stopwords
+from nltk.corpus import wordnet
+from nltk import ne_chunk
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.porter import PorterStemmer
+from nltk import tree2conlltags
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import classification_report, accuracy_score
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
-import joblib
-from sqlalchemy import create_engine
 
 
 app = Flask(__name__)
+
+class OrganizationPresence(BaseEstimator, TransformerMixin):
+
+    def checking_org(self, text):
+        #
+        words = word_tokenize(text)
+        words = [w for w in words if w.lower() not in stopwords.words('english')]
+
+        ptree = pos_tag(words)
+
+        for w in tree2conlltags(ne_chunk(ptree)):
+            if (w[2][2:] == 'ORGANIZATION') and (w[1] == 'NNP'):
+                return True
+
+            return False
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, X):
+        #
+        X_org = pd.Series(X).apply(self.checking_org)
+
+        return pd.DataFrame(X_org)
+
+class TextLengthExtractor(BaseEstimator, TransformerMixin):
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        #
+        return pd.DataFrame(pd.Series(X).apply(lambda x: len(x)))
 
 def tokenize(text):
     # Changing every webpage for a space.
@@ -34,24 +84,33 @@ def tokenize(text):
 
     tokens = word_tokenize(text)
 
-    tokens = [w for w in tokens if w not in stopwords.words('english')]
+    tags = {"J": wordnet.ADJ,
+            "N": wordnet.NOUN,
+            "V": wordnet.VERB,
+            "R": wordnet.ADV}
+
+    particular_words = ['kg']
+    total_stopwords = particular_words + stopwords.words('english')
 
     lemmatizer = WordNetLemmatizer()
+    stemmer = PorterStemmer()
 
     clean_tokens = []
     for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok, pos='v').lower().strip()
-        clean_tok = lemmatizer.lemmatize(clean_tok, pos='n')
-        clean_tokens.append(clean_tok)#+'_'+tag)
-
+        clean_tok = lemmatizer.lemmatize(tok, \
+                tags.get(pos_tag([tok])[0][1][0].upper(), wordnet.NOUN)).lower()
+        clean_tok = stemmer.stem(clean_tok)
+        if clean_tok not in total_stopwords:
+            clean_tokens.append(clean_tok)
 
     return  clean_tokens
+
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('DisasterResponse_table', engine)
 
 # load model
-pkl_file_location = "/volumes/outssd/udacity/DisasterResponseModel.pkl"
+pkl_file_location = "../models/DisasterResponseModel.pkl"
 model = joblib.load(pkl_file_location)
 
 
@@ -112,7 +171,6 @@ def go():
         query=query,
         classification_result=classification_results
     )
-
 
 def main():
     app.run(host='0.0.0.0', port=3001, debug=True)
