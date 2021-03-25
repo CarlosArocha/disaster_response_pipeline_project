@@ -10,14 +10,17 @@ import nltk
 # import libraries
 import numpy as np
 import pandas as pd
+import time
 from sqlalchemy import create_engine
 import re
 import pickle
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk import pos_tag
 from nltk.corpus import stopwords
+from nltk.corpus import wordnet
 from nltk import ne_chunk
 from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.porter import PorterStemmer
 from nltk import tree2conlltags
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -34,11 +37,13 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import classification_report, accuracy_score
 
 
-#BASE_PATH1 = '/Users/carlosarocha/Dropbox/AI/GITHUB/UDACITY/DATA_SCIENCE/disaster_response_pipeline_project/data/'
-#BASE_PATH = '/'
-
 def load_data(database_filepath):
     # load data from database
+
+    final_path = 'sqlite:///' + database_filepath
+    engine = create_engine(final_path)
+    df = pd.read_sql('DisasterResponse_table', engine)
+
     target_columns = ['related', 'request', 'offer',
        'aid_related', 'medical_help', 'medical_products', 'search_and_rescue',
        'security', 'military', 'water', 'food', 'shelter', 'clothing', 'money',
@@ -48,12 +53,6 @@ def load_data(database_filepath):
        'weather_related', 'floods', 'storm', 'fire', 'earthquake', 'cold',
        'other_weather', 'direct_report', 'not_related']
 
-    message_column = 'message'
-
-    final_path = 'sqlite:///' + database_filepath
-    engine = create_engine(final_path)
-    df = pd.read_sql('DisasterResponse_table', engine)
-
     return df, target_columns
 
 # A simple function to return the X and Y data arrays for training and testing
@@ -61,30 +60,6 @@ def XY_values(df, X_columns, Y_columns):
     X = df[X_columns].values
     Y = df[Y_columns].values
     return X, Y
-
-# An approach to fix a little Oversampling the imbalanced data
-# Just a bit, too much oversampling push our model to overfit
-def fix_imbalanced(data, target_col, factor=2, top_data=0.1):
-    new_data = data.copy()
-    for col in target_col:
-        # taking a sub dataframe where all rows with this column is '1'
-        d_base = data[data[col] == 1]
-        #print(col, len(d_base), len(data), (len(d_base)/len(data)), int((factor-1)*len(d_base)))
-        if (len(d_base) > 0) and ((len(d_base)/len(data))<top_data):
-            d_samples = d_base.sample(n = int((factor-1)*len(d_base)), replace=True)
-            new_data = pd.concat([new_data, d_samples], ignore_index=True)
-            #print(col, len(d_samples))
-    return new_data
-
-def imbalanced_rows(data, target_columns, factor=1):
-    db = data.copy()
-    l = int(len(db[db[target_columns].sum(axis=1) == 1]) * factor)
-    d_samples = db[db[target_columns].sum(axis=1) == 1].sample(n = l, replace=False)
-    db = pd.concat([db[db[target_columns].sum(axis=1) > 1],d_samples], ignore_index=True)
-    new_columns = [col for col in target_columns if db[col].sum(axis=0) > 0]
-
-    return db, new_columns
-
 
 def tokenize(text):
     # Changing every webpage for a space.
@@ -104,45 +79,78 @@ def tokenize(text):
 
     tokens = word_tokenize(text)
 
-    tokens = [w for w in tokens if w not in stopwords.words('english')]
+    tags = {"J": wordnet.ADJ,
+            "N": wordnet.NOUN,
+            "V": wordnet.VERB,
+            "R": wordnet.ADV}
+
+    particular_words = ['kg']
+    total_stopwords = particular_words + stopwords.words('english')
 
     lemmatizer = WordNetLemmatizer()
+    stemmer = PorterStemmer()
 
     clean_tokens = []
     for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok, pos='v').lower().strip()
-        clean_tok = lemmatizer.lemmatize(clean_tok, pos='n')
-        clean_tokens.append(clean_tok)#+'_'+tag)
+        clean_tok = lemmatizer.lemmatize(tok, tags.get(pos_tag([tok])[0][1][0].upper(), wordnet.NOUN)).lower()
+        clean_tok = stemmer.stem(clean_tok)
+        if clean_tok not in total_stopwords:
+            clean_tokens.append(clean_tok)
 
 
     return  clean_tokens
 
+class OrganizationPresence(BaseEstimator, TransformerMixin):
 
+    def checking_org(self, text):
+        #
+        words = word_tokenize(text)
+        words = [w for w in words if w.lower() not in stopwords.words('english')]
+
+        ptree = pos_tag(words)
+
+        for w in tree2conlltags(ne_chunk(ptree)):
+            if (w[2][2:] == 'ORGANIZATION') and (w[1] == 'NNP'):
+                return True
+
+            return False
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, X):
+        #
+        X_org = pd.Series(X).apply(self.checking_org)
+
+        return pd.DataFrame(X_org)
+
+class TextLengthExtractor(BaseEstimator, TransformerMixin):
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        #
+        return pd.DataFrame(pd.Series(X).apply(lambda x: len(x)))
 
 def build_model():
-    pipeline = Pipeline([
-                    ('vect', CountVectorizer(tokenizer=tokenize)),
-                    ('tfidf', TfidfTransformer()),
-                    ('clf', MultiOutputClassifier(RandomForestClassifier()))
-                    ])
-
-    #parameters = {
-                 #'vect__max_df': (0.5, 0.75, 1.0),
-                 #'vect__max_features': (None, 5000, 10000)
-                 #'vect__min_df': (0.5, 1.0),
-                 #'vect__ngram_range': ((1, 1),(2,2))
-                 #'tfidf__norm': ('l1','l2'),
-                 #'tfidf__use_idf': (True, False),
-
-                 #'clf__estimator__criterion': ('gini','entropy'),
-                 #'clf__estimator__max_depth': None,
-                 #'clf__estimator__max_leaf_nodes': None,
-                 #'clf__estimator__min_samples_split': [2],
-                 #'clf__estimator__n_estimators': [100]#, 250, 500],
-                 #'clf__estimator__random_state': (None, 0.2)
-    #             }
-
-    #cv = GridSearchCV(pipeline, param_grid=parameters)
+    # Then our final pipeline with best parameters and feature union implementation
+    pipeline = Pipeline([\
+                        ('features', FeatureUnion([\
+                            ('text_pipeline', Pipeline([\
+                                ('vect', CountVectorizer(tokenizer=tokenize,\
+                                                         max_df=1.0,\
+                                                         max_features=None,)),\
+                                ('tfidf', TfidfTransformer(norm='l2',\
+                                                           use_idf=True,))\
+                            ])),\
+                            ('org_presence', OrganizationPresence()),\
+                            ('text_length', TextLengthExtractor())\
+                        ])),\
+                        ('clf', RandomForestClassifier(criterion='gini',\
+                                                        n_estimators=250,\
+                                                        random_state=42,))\
+                        ])
 
     return pipeline
 
@@ -154,13 +162,7 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 def save_model(model, model_filepath):
 
-    #print(BASE_PATH1, model_filepath)
-    #final_path = BASE_PATH1+model_filepath
     pickle.dump(model, open(model_filepath, 'wb'))
-
-    # some time later...
-    # load the model from disk
-    # loaded_model = pickle.load(open(filename, 'rb'))
 
 
 def main():
@@ -169,8 +171,6 @@ def main():
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
 
         df, category_names = load_data(database_filepath)
-        df = fix_imbalanced(df, category_names, 1.5, 0.035)
-        df, category_names = imbalanced_rows(df, category_names, 0.3)
 
         X, Y = XY_values(df, 'message', category_names)
 
