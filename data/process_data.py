@@ -21,8 +21,7 @@ def load_data(messages_filepath, categories_filepath):
 
         Return:
 
-            df : pd.Dataframe.
-                the merged dataset with both files data.
+            df : pd.Dataframe; the merged dataset with both files data.
 
     '''
 
@@ -47,27 +46,26 @@ def Oversampling_Imbalanced_Data(data, target_col, factor=2, top_data=0.05,
 
             data : The original dataset to be oversampled.
 
-            target_col : list ;
-                the columns of the featured data or categories to be checked.
+            target_col : list ; the columns of the featured data or categories
+                         to be checked.
 
         Optional:
 
             factor : float; default = 2 (2x), example: 0.0 (0x) - 10.0 (10x)
-                the factor that multiplies the number of rows to be repeated.
+                    the factor that multiplies the number of rows to be
+                    repeated.
 
             top_data : float; default = 0.05 (5%), example: 0.0 (0%) - 0.1 (10%)
-                the percentage of data represented that will include the
-                features to be repeated.
+                    the percentage of data represented that will include the
+                    features to be repeated.
 
-            replace : True or False;
-                This determine if wants to repeat some of the data already
-                sampled. If you don't want to repeat data more than once then
-                the factor can't be more than 1.
+            replace : True or False; This determine if wants to repeat some of
+                    the data already sampled. If you don't want to repeat data
+                    more than once then the factor can't be more than 1.
 
         Return:
 
-            new_data : pd.Dataframe.
-                the new dataset oversampled.
+            new_data : pd.Dataframe; the new dataset oversampled.
 
     '''
 
@@ -98,19 +96,18 @@ def Undersampling_Imbalanced_Related_Data(data, target_col, factor=0.5):
 
             data : The original dataset to be undersampled.
 
-            target_col : list ;
-                the columns of the featured data or categories to be checked.
+            target_col : list ; the columns of the featured data or categories
+                        to be checked.
 
         Optional:
 
             factor : float; default = 0.5 (50%), example: 0.0 (0%) - 1.0 (100%)
-                the factor that represent the percentage been elminated from the
-                existing data.
+                    the factor that represent the percentage been elminated from
+                    the existing data.
 
         Return:
 
-            new_data : pd.Dataframe.
-                the new dataset undersampled.
+            new_data : pd.Dataframe; the new dataset undersampled.
 
     '''
 
@@ -139,13 +136,11 @@ def clean_data(df):
 
         Required:
 
-            df : pd.Dataframe.
-                The raw dataset to be prepared.
+            df : pd.Dataframe; The raw dataset to be prepared.
 
         Return:
 
-            df : pd.Dataframe.
-                the cleaned and prepared dataframe.
+            df : pd.Dataframe; The cleaned and prepared dataframe.
 
     '''
     # creating a dataframe of the 36 individual category columns
@@ -205,9 +200,8 @@ def save_data(df, database_filename):
 
         Required:
 
-            df : pd.Dataframe.
-                    The dataframe to be transformed and saved in the location
-                    specified.
+            df : pd.Dataframe; The dataframe to be transformed and saved in the
+                            location specified.
 
             database_filepath : The location where the new table will be saved.
 
