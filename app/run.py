@@ -119,6 +119,19 @@ def index():
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
 
+    category_names = ['related', 'request', 'offer',
+       'aid_related', 'medical_help', 'medical_products', 'search_and_rescue',
+       'security', 'military', 'water', 'food', 'shelter', 'clothing', 'money',
+       'missing_people', 'refugees', 'death', 'other_aid',
+       'infrastructure_related', 'transport', 'buildings', 'electricity',
+       'tools', 'hospitals', 'shops', 'aid_centers', 'other_infrastructure',
+       'weather_related', 'floods', 'storm', 'fire', 'earthquake', 'cold',
+       'other_weather', 'direct_report', 'not_related']
+
+    category_counts = df[category_names].sum()
+    category_names = [re.sub('_',' ', text) for text in category_names]
+
+
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
@@ -131,15 +144,33 @@ def index():
             ],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Distribution of Messages by Genre',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Total"
                 },
                 'xaxis': {
                     'title': "Genre"
                 }
             }
+        },{
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=category_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Messages by Category',
+                'yaxis': {
+                    'title': "Total"
+                },
+                'xaxis': {
+                    'title': "Categories"
+                }
+            }
         }
+
     ]
 
     # encode plotly graphs in JSON
@@ -163,6 +194,22 @@ def go():
     # This will render the go.html Please see that file.
     return render_template(
         'go.html',
+        query=query,
+        classification_result=classification_results
+    )
+
+@app.route('/graph')
+def graph():
+    # save user input in query
+    query = request.args.get('query', '')
+
+    # use model to predict classification for query
+    classification_labels = model.predict([query])[0]
+    classification_results = dict(zip(df.columns[4:], classification_labels))
+
+    # This will render the go.html Please see that file.
+    return render_template(
+        'graph.html',
         query=query,
         classification_result=classification_results
     )
