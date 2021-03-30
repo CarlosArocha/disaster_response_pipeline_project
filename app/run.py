@@ -166,7 +166,12 @@ def index():
                     'title': "Total"
                 },
                 'xaxis': {
-                    'title': "Categories"
+                    'title': "Categories",
+                    'tickangle': 37,
+                    'tickfont': {
+                        'size':10
+                    }
+
                 }
             }
         }

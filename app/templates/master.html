@@ -18,13 +18,8 @@
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
-            <a class="navbar-brand" href="/">Disaster Response Project</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="https://www.udacity.com/">Made with Udacity</a></li>
-                <li><a href="https://github.com/">Contact</a></li>
-            </ul>
+            <a class="navbar-brand" style='color:white' href="/">Disaster Response Project</a>
+            <a class="navbar-brand" style='color:white' href="https://github.com/CarlosArocha/disaster_response_pipeline_project">Github Rep</a>
         </div>
     </div>
 </nav>
@@ -35,13 +30,16 @@
         <h1 class="text-center">Disaster Response Project</h1>
         <p class="text-center">Analyzing message data for disaster response</p>
         <hr />
-
+        <p class="text-center">As part of my data science studies at Udacity, I built this API from the analysis and construction of a machine learning model from disaster data communications from different sources such as news, social media or emergency calls, with the purpose of directing the results to the agencies in charge of immediate attention.</p>
+        <p class="text-center">The data set used was provided by <a style='color:blue' href='https://www.figure-eight.com/'>Figure Eight</a>, and consists of more than 26,000 messages classified in 36 different categories.</p>
+        <p class="text-center">Please enjoy this exercise by writing emergency messages in the box below.</p>
+        <hr />
         <div class="row">
             <div class="col-lg-12 form-group-lg">
                 <form action="/go" method="get">
-                    <input type="text" class="form-control form-control-lg" name="query" placeholder="Enter a message to classify">
-                    <div class="col-lg-offset-5">
-                        <button type="submit" class="btn btn-lg btn-success">Classify Message</button>
+                    <input type="text" class="form-control form-control-lg" name="query" placeholder="Enter a message to classify. Ex: We need food, medicine at lilovois 47 Monarque.">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button type="submit" class="btn btn-lg btn-danger">Classify Message</button>
                     </div>
                 </form>
             </div>
@@ -55,7 +53,7 @@
 <div class="container">
     {% block content %}
         <div class="page-header">
-            <h1 class="text-center">Overview of Training Dataset</h1>
+            <h1 class="text-center">Graphic Overview of Training Dataset</h1>
         </div>
     {% endblock %}
 
