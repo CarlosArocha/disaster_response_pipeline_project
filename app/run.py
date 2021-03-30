@@ -5,7 +5,7 @@ import re
 import joblib
 
 from sqlalchemy import create_engine
-from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet
@@ -15,16 +15,11 @@ from nltk.stem.porter import PorterStemmer
 from nltk import tree2conlltags
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 from flask import Flask
 from flask import render_template, request, jsonify
@@ -178,3 +173,35 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+'''
+# extract data needed for visuals
+# TODO: Below is an example - modify to extract data for your own visuals
+genre_counts = df.groupby('genre').count()['message']
+genre_names = list(genre_counts.index)
+
+# create visuals
+# TODO: Below is an example - modify to create your own visuals
+graphs = [
+    {
+        'data': [
+            Bar(
+                x=genre_names,
+                y=genre_counts
+            )
+        ],
+
+        'layout': {
+            'title': 'Distribution of Message Genres',
+            'yaxis': {
+                'title': "Count"
+            },
+            'xaxis': {
+                'title': "Genre"
+            }
+        }
+    }
+]
+
+'''
