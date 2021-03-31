@@ -31,6 +31,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 
 
 def load_data(database_filepath):
@@ -253,14 +254,17 @@ def build_model():
     '''
     The model funtion. Declaring the pipeline of our classification and Training
     process. In our case we make a bag-of-words, creates a tdidf array and add
-    two custom features. Finally we use Random Forest Classifier as our machine
-    learning algorithm.
+    two custom features. At the end of the original pipelin we use Random Forest
+    Classifier as our machine learning algorithm.
+    Furthermore we create a GridSearch of the previous pipeline to iterate as
+    many parameters as possible looking for ours best performance and model.
 
         Function parameters: None.
 
         Return:
 
-            pipeline : a pipeline object with our sequence for training.
+            cv : a GridSearch of a pipeline object with our sequence for
+                 training.
     '''
 
     # Then our final pipeline with the best parameters founded.
@@ -282,11 +286,29 @@ def build_model():
                         ])),\
                         # Our final ML algorithm.
                         ('clf', RandomForestClassifier(criterion='gini',\
-                                                        n_estimators=250,\
+                                                       #n_estimators=250,
                                                         random_state=42,))\
                         ])
 
-    return pipeline
+    # Let's define the parameters to iterate in a Grid Search
+    # This is our options, but the reality is that you need access good GPU's
+    # to make it fast, and to model with all the parameters.
+    # In this practice we will only iterate between two parameters.
+    # Please feel free to unlock the other parameters to improve the model.
+    # You must remove the parameters in the original pipeline too.
+    parameters = {
+                 #'features__text_pipeline__vect__max_df': (0.75, 1.0),
+                 #'features__text_pipeline__vect__max_features': (None, 10000),
+                 #'features__text_pipeline__tfidf__norm': ('l2','l1'),
+                 #'features__text_pipeline__tfidf__use_idf': (True, False),
+                 #'clf__criterion': ['gini','entropy'],
+                 'clf__n_estimators': [10,250],
+                 #'clf__random_state': [42, 69]
+                }
+    # The GridSearch model creation.
+    cv = GridSearchCV(pipeline, param_grid=parameters, scoring='accuracy')
+
+    return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
     '''
