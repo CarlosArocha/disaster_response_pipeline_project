@@ -162,7 +162,7 @@ def tokenize(text):
         clean_tok = lemmatizer.lemmatize(tok,\
                                     tags.get(pos_tag([tok])[0][1][0].upper(),\
                                     wordnet.NOUN)).lower()
-        clean_tok = stemmer.stem(clean_tok)
+        # clean_tok = stemmer.stem(clean_tok) <- just for further exercising
         if clean_tok not in total_stopwords:
             clean_tokens.append(clean_tok)
 
