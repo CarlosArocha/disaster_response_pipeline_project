@@ -115,51 +115,51 @@ To evaluate our model, we use in this case some different scores: accuracy score
 Here are the resulting scores for the final model approached (after some
 Gridsearch training):
 
-            Accuracy score: 0.45714882943143814
+                Accuracy score: 0.45714882943143814
 
-                            precision    recall  f1-score   support
+                                precision    recall  f1-score   support
 
-                  related       0.92      0.99      0.95      4291
-                  request       0.90      0.77      0.83      1118
-                    offer       1.00      0.83      0.91        47
-              aid_related       0.86      0.89      0.88      3010
-             medical_help       0.97      0.48      0.64       584
-         medical_products       0.99      0.54      0.70       395
-        search_and_rescue       1.00      0.88      0.94       377
-                 security       0.99      0.85      0.92       224
-                 military       0.96      0.87      0.91       341
-                    water       0.94      0.65      0.77       438
-                     food       0.92      0.75      0.82       710
-                  shelter       0.94      0.68      0.79       653
-                 clothing       0.98      0.86      0.92       171
-                    money       1.00      0.82      0.90       255
-           missing_people       1.00      0.94      0.97       163
-                 refugees       0.99      0.84      0.91       390
-                    death       0.99      0.61      0.76       377
-                other_aid       0.93      0.49      0.64       922
-   infrastructure_related       0.99      0.63      0.77       599
-                transport       0.99      0.61      0.75       414
-                buildings       0.98      0.53      0.69       364
-              electricity       0.99      0.82      0.90       224
-                    tools       1.00      0.82      0.90        83
-                hospitals       1.00      0.87      0.93       128
-                    shops       1.00      0.80      0.89        49
-              aid_centers       1.00      0.82      0.90       156
-     other_infrastructure       0.99      0.48      0.65       345
-          weather_related       0.94      0.86      0.90      2012
-                   floods       0.98      0.73      0.84       648
-                    storm       0.92      0.67      0.78       644
-                     fire       0.99      0.89      0.94       125
-               earthquake       0.97      0.82      0.89       618
-                     cold       0.99      0.82      0.90       218
-            other_weather       0.98      0.46      0.62       391
-            direct_report       0.86      0.64      0.73      1231
-              not_related       0.77      0.26      0.38       493
+                      related       0.92      0.99      0.95      4291
+                      request       0.90      0.77      0.83      1118
+                        offer       1.00      0.83      0.91        47
+                  aid_related       0.86      0.89      0.88      3010
+                 medical_help       0.97      0.48      0.64       584
+             medical_products       0.99      0.54      0.70       395
+            search_and_rescue       1.00      0.88      0.94       377
+                     security       0.99      0.85      0.92       224
+                     military       0.96      0.87      0.91       341
+                        water       0.94      0.65      0.77       438
+                         food       0.92      0.75      0.82       710
+                      shelter       0.94      0.68      0.79       653
+                     clothing       0.98      0.86      0.92       171
+                        money       1.00      0.82      0.90       255
+               missing_people       1.00      0.94      0.97       163
+                     refugees       0.99      0.84      0.91       390
+                        death       0.99      0.61      0.76       377
+                    other_aid       0.93      0.49      0.64       922
+       infrastructure_related       0.99      0.63      0.77       599
+                    transport       0.99      0.61      0.75       414
+                    buildings       0.98      0.53      0.69       364
+                  electricity       0.99      0.82      0.90       224
+                        tools       1.00      0.82      0.90        83
+                    hospitals       1.00      0.87      0.93       128
+                        shops       1.00      0.80      0.89        49
+                  aid_centers       1.00      0.82      0.90       156
+         other_infrastructure       0.99      0.48      0.65       345
+              weather_related       0.94      0.86      0.90      2012
+                       floods       0.98      0.73      0.84       648
+                        storm       0.92      0.67      0.78       644
+                         fire       0.99      0.89      0.94       125
+                   earthquake       0.97      0.82      0.89       618
+                         cold       0.99      0.82      0.90       218
+                other_weather       0.98      0.46      0.62       391
+                direct_report       0.86      0.64      0.73      1231
+                  not_related       0.77      0.26      0.38       493
 
-                micro avg       0.93      0.77      0.84     23208
-                macro avg       0.96      0.73      0.82     23208
-             weighted avg       0.93      0.77      0.83     23208
-              samples avg       0.86      0.73      0.75     23208
+                    micro avg       0.93      0.77      0.84     23208
+                    macro avg       0.96      0.73      0.82     23208
+                 weighted avg       0.93      0.77      0.83     23208
+                  samples avg       0.86      0.73      0.75     23208
 
 In this case, with an uneven multi-level-class data, f1-score is the one that give us a better approach to check our model. Accuracy, that was below 0.5 and a bad representation, is not conclusive for this kind of uneven data. In contrast, f1-score is a better approach because it weights an average of precision and recall, meaning that it takes into account false negatives and false positives, in other words, it tries to balance the imbalance. Is not perfect but is a better approach than accuracy.
 
@@ -183,5 +183,7 @@ Finally, about the data, there are more possibilities to improve the tokenizer, 
 ### Licenses and Acknowledgment:
 
 Thanks to Appen (Figure-Eight) for bring us these huge dataset,  the classification was a great work.
+
 Thanks Udacity for the opportunity to bring us this project and their initial code.
+
 Thanks to MIT for license the use of NLTK Library.
